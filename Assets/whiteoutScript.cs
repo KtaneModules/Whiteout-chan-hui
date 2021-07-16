@@ -7,54 +7,45 @@ using KModkit;
 
 public class whiteoutScript : MonoBehaviour
 {
-
-	struct RGB
-	{
-		public int R;
-		public int G;
-		public int B;
-
-		public RGB(int R, int G, int B)
-		{
-			this.R = R;
-			this.G = G;
-			this.B = B;
-		}
-	};
-
 	public KMAudio audio;
 	public KMBombInfo bomb;
 	public KMBossModule boss;
 
+	private String[] sfxs = new String[]{"ok1", "ok2", "ok3"};
+
 	public KMSelectable Screen;
+	public GameObject StageIndicator;
 	public Material[] Colors;
-	private RGB[] ColorsRGB = new RGB[]
+	private Color[] ColorsRGB = new Color[]
 	{
-		new RGB(0, 0, 0), 
-		new RGB(1, 0, 0), 
-		new RGB(0, 1, 0), 
-		new RGB(0, 0, 1), 
-		new RGB(1, 1, 0), 
-		new RGB(1, 0, 1), 
-		new RGB(0, 1, 1), 
-		new RGB(1, 1, 1), 
+		new Color(0, 0, 0),
+		new Color(1, 0, 0),
+		new Color(0, 1, 0),
+		new Color(0, 0, 1),
+		new Color(1, 1, 0),
+		new Color(1, 0, 1),
+		new Color(0, 1, 1),
+		new Color(1, 1, 1),
 	};
-	private RGB CurrentRGB = new RGB(0, 0, 0);
+	private Color CurrentRGB = new Color(0, 0, 0);
+	public Material[] MainTextColor;
 
 	public static string[] ignoredModules = null;
 	private int count = 0;
 	private int ticker = 0;
+	private int Stage = -1;
 	private int curStage = 0;
-	
+
 
 	private bool IsWhiteout;
 	private bool solving;
 	private bool modulesolved;
+	private bool animationPlaying;
 
 	//logging
 	static int moduleIdCounter = 1;
 	int moduleId;
-	
+
 	public string TwitchHelpMessage = "Press the screen with !{0} push.";
 
 	void Awake(){
@@ -62,15 +53,15 @@ public class whiteoutScript : MonoBehaviour
 
 		Screen.OnInteract += delegate () { screenPress(); return false; };
 	}
-	
+
 	void Start () {
 		//The modules we ignore when getting the number of stages
 		ignoredModules = GetComponent<KMBossModule>().GetIgnoredModules("Whiteout", new string[]{
 			"14",
-			//"42",
-			//"501",
+			"42",
+			"501",
 			"A>N<D",
-			//"Bamboozling Time Keeper",
+			"Bamboozling Time Keeper",
 			"Brainf---",
 			"Busy Beaver",
 			"Forget Enigma",
@@ -85,24 +76,24 @@ public class whiteoutScript : MonoBehaviour
 			"Forget Us Not",
 			"Iconic",
 			"Kugelblitz",
-			//"Multitask",
+			"Multitask",
 			"OmegaForget",
 			"Organization",
-			//"Password Destroyer",
+			"Password Destroyer",
 			"Purgatory",
 			"RPS Judging",
 			"Simon Forgets",
 			"Simon's Stages",
 			"Souvenir",
 			"Tallordered Keys",
-			//"The Heart",
-			//"The Swan",
-			//"The Time Keeper",
-			//"The Troll",
+			"The Heart",
+			"The Swan",
+			"The Time Keeper",
+			"The Troll",
 			"The Twin",
-			//"The Very Annoying Button",
-			//"Timing is Everything",
-			//"Turn The Key",
+			"The Very Annoying Button",
+			"Timing is Everything",
+			"Turn The Key",
 			"Whiteout",
 			"Ultimate Custom Night",
 			"Übermodule"
@@ -116,28 +107,33 @@ public class whiteoutScript : MonoBehaviour
 
 	private void Update()
 	{
-		
+
 		if(count < 0 || modulesolved)
 		{
 			return;
 		}
 
 		ticker++;
-		if (ticker == 5)
+		if (ticker >= 5 && !animationPlaying)
 		{
 			ticker = 0;
-			
+
 			int check = bomb.GetSolvedModuleNames().Where(x => !ignoredModules.Contains(x)).Count();
-			if (check != curStage) 
-			{ 
+			if (check != curStage)
+			{
 				if (IsWhiteout)
 				{
+					audio.PlaySoundAtTransform("aww",transform);
+					StartCoroutine(WhiteoutAnimation("AWW..."));
 					GetComponent<KMBombModule>().HandleStrike();
 					Debug.LogFormat("[Whiteout #{0}] Strike! You didn't press the button before you solve the module.", moduleId);
 					IsWhiteout = false;
 				}
+				else
+				{
+					audio.PlaySoundAtTransform(sfxs[UnityEngine.Random.Range(0, 3)],transform);
+				}
 				curStage = check;
-				audio.PlaySoundAtTransform("newSt",transform);
 				StageProgression();
 			}
 		}
@@ -145,15 +141,24 @@ public class whiteoutScript : MonoBehaviour
 
 	void StageProgression()
 	{
+		Stage++;
 		if (count == 0)
 		{
 			for(int i=0;i<ColorsRGB.Length;i++)
 			{
-				if (1 - CurrentRGB.R == ColorsRGB[i].R && 1 - CurrentRGB.G == ColorsRGB[i].G && 1 - CurrentRGB.B == ColorsRGB[i].B)
+				if (rgbXOR(CurrentRGB, Color.white) == ColorsRGB[i])
 				{
-					Screen.GetComponent<MeshRenderer>().material = Colors[i];
+					if (i == 7)
+					{
+						StageIndicator.GetComponent<TextMesh>().color = MainTextColor[1].color;
+					}
+					else
+					{
+						StageIndicator.GetComponent<TextMesh>().color = MainTextColor[0].color;
+					}
+					StartCoroutine(ColorTransition(Colors[i].color));
 					CurrentRGB = rgbXOR(CurrentRGB,ColorsRGB[i]);
-					Debug.LogFormat("[Whiteout #{0}] The color of the screen is {1}.", moduleId, Colors[i].name);
+					Debug.LogFormat("[Whiteout #{0}] The color of the screen on stage {1} is {2}.", moduleId, Stage, Colors[i].name);
 					solving = true;
 					count--;
 				}
@@ -162,19 +167,41 @@ public class whiteoutScript : MonoBehaviour
 		else if (count > 0)
 		{
 			int randomColor = UnityEngine.Random.Range(0, 8);
-			Screen.GetComponent<MeshRenderer>().material = Colors[randomColor];
+			StartCoroutine(ColorTransition(Colors[randomColor].color));
+			if (randomColor == 7)
+			{
+				StageIndicator.GetComponent<TextMesh>().color = MainTextColor[1].color;
+			}
+			else
+			{
+				StageIndicator.GetComponent<TextMesh>().color = MainTextColor[0].color;
+			}
 			CurrentRGB = rgbXOR(CurrentRGB,ColorsRGB[randomColor]);
-			
-			Debug.LogFormat("[Whiteout #{0}] The color of the screen is {1}.", moduleId, Colors[randomColor].name);
+
+			Debug.LogFormat("[Whiteout #{0}] The color of the screen on stage {1} is {2}.", moduleId, Stage, Colors[randomColor].name);
 			count--;
 		}
 
-		if (CurrentRGB.R == 1 && CurrentRGB.G == 1 && CurrentRGB.B == 1)
+		if (CurrentRGB == Color.white)
 		{
 			IsWhiteout = true;
 		}
 
+		StageIndicator.GetComponent<TextMesh>().text = Stage.ToString();
 		Logging();
+	}
+	
+	IEnumerator ColorTransition(Color targetColor)
+	{
+		animationPlaying = true;
+		Color ColorDifs = (targetColor - Screen.GetComponent<MeshRenderer>().material.color)/25;
+		for (int i = 0; i < 25; i++)
+		{
+			Screen.GetComponent<MeshRenderer>().material.color += ColorDifs;
+			yield return new WaitForSeconds(0.005f);
+		}
+		animationPlaying = false;
+		yield return null;
 	}
 
 	void Logging()
@@ -187,31 +214,69 @@ public class whiteoutScript : MonoBehaviour
 		{
 			for (int i = 0; i < ColorsRGB.Length; i++)
 			{
-			
-				if (ColorsRGB[i].R == CurrentRGB.R && ColorsRGB[i].G == CurrentRGB.G && ColorsRGB[i].B == CurrentRGB.B)
+
+				if (ColorsRGB[i] == CurrentRGB)
 				{
-					Debug.LogFormat("[Whiteout #{0}] Your color is currently {1}({2},{3},{4}).", moduleId, Colors[i].name, ColorsRGB[i].R, ColorsRGB[i].G, ColorsRGB[i].B);
+					Debug.LogFormat("[Whiteout #{0}] Your color is currently {1}({2},{3},{4}).", moduleId, Colors[i].name, ColorsRGB[i].r, ColorsRGB[i].g, ColorsRGB[i].b);
 				}
 			}
 		}
 	}
 
-	RGB rgbXOR(RGB x,RGB y)
+	Color rgbXOR(Color x,Color y)
 	{
-		return new RGB((x.R+y.R)%2,(x.G+y.G)%2,(x.B+y.B)%2);
+		return new Color((x.r+y.r)%2,(x.g+y.g)%2,(x.b+y.b)%2);
 	}
 
 	void screenPress()
 	{
-		if (modulesolved)
+		if (modulesolved || animationPlaying)
 		{
 			return;
 		}
-		
+
 		Screen.AddInteractionPunch(.5f);
 
 		if (!IsWhiteout)
 		{
+			if (CurrentRGB == Color.black)
+			{
+				StartCoroutine(WhiteoutAnimation("BLACKOUT?"));
+				audio.PlaySoundAtTransform("blackout",transform);
+			}
+			else if (CurrentRGB == Color.red)
+			{
+				StartCoroutine(WhiteoutAnimation("REDOUT?"));
+				audio.PlaySoundAtTransform("redout",transform);
+			}
+			else if (CurrentRGB == Color.green)
+			{
+				StartCoroutine(WhiteoutAnimation("GREENOUT?"));
+				audio.PlaySoundAtTransform("greenout",transform);
+			}
+			else if (CurrentRGB == Color.blue)
+			{
+				StartCoroutine(WhiteoutAnimation("BLUEOUT?"));
+				audio.PlaySoundAtTransform("blueout",transform);
+			}
+			else if (CurrentRGB == new Color(1, 1, 0))
+			{
+				StageIndicator.GetComponent<TextMesh>().characterSize = 0.0013F;
+				StartCoroutine(WhiteoutAnimation("YELLOWOUT?"));
+				audio.PlaySoundAtTransform("yellowout",transform);
+			}
+			else if (CurrentRGB == Color.magenta)
+			{
+				StageIndicator.GetComponent<TextMesh>().characterSize = 0.0012F;
+				StartCoroutine(WhiteoutAnimation("MAGENTAOUT?"));
+				audio.PlaySoundAtTransform("magentaout",transform);
+			}
+			else if (CurrentRGB == Color.cyan)
+			{
+				StartCoroutine(WhiteoutAnimation("CYANOUT?"));
+				audio.PlaySoundAtTransform("cyanout",transform);
+			}
+			
 			GetComponent<KMBombModule>().HandleStrike();
 			Debug.LogFormat("[Whiteout #{0}] Strike! You pressed button at the wrong moment.", moduleId);
 		}
@@ -219,7 +284,8 @@ public class whiteoutScript : MonoBehaviour
 		{
 			IsWhiteout = false;
 			Debug.LogFormat("[Whiteout #{0}] Screen pressed as well!", moduleId);
-			audio.PlaySoundAtTransform("actionL",transform);
+			StartCoroutine(WhiteoutAnimation("WHITEOUT!"));
+			audio.PlaySoundAtTransform("whiteout",transform);
 
 			if (solving)
 			{
@@ -229,6 +295,20 @@ public class whiteoutScript : MonoBehaviour
 			}
 			//point...etc
 		}
+	}
+
+	IEnumerator WhiteoutAnimation(String word)
+	{
+		animationPlaying = true;
+		for (int i = 0; i < word.Length; i++)
+		{
+			StageIndicator.GetComponent<TextMesh>().text = word.Substring(0, i + 1);
+			yield return new WaitForSeconds(0.32f/word.Length);
+		}
+		yield return new WaitForSeconds(0.5f);
+		StageIndicator.GetComponent<TextMesh>().characterSize = 0.0015F;
+		StageIndicator.GetComponent<TextMesh>().text = Stage.ToString();
+		animationPlaying = false;
 	}
 
 	IEnumerator ProcessTwitchCommand(string command)
