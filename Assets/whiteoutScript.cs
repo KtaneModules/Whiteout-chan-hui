@@ -10,11 +10,13 @@ public class whiteoutScript : MonoBehaviour
 	public KMAudio audio;
 	public KMBombInfo bomb;
 	public KMBossModule boss;
+	public KMColorblindMode colorblindmode;
 
 	private String[] sfxs = new String[]{"ok1", "ok2", "ok3"};
 
 	public KMSelectable Screen;
 	public GameObject StageIndicator;
+	public GameObject ColorblindText;
 	public Material[] Colors;
 	private Color[] ColorsRGB = new Color[]
 	{
@@ -42,11 +44,13 @@ public class whiteoutScript : MonoBehaviour
 	private bool modulesolved;
 	private bool animationPlaying;
 
+	private bool colorblindModeEnabled;
+
 	//logging
 	static int moduleIdCounter = 1;
 	int moduleId;
 
-	public string TwitchHelpMessage = "Press the screen with !{0} push.";
+	public string TwitchHelpMessage = "Press the screen with !{0} push. Toggle colorblind mode with !{0} colorblind.";
 
 	void Awake(){
 		moduleId = moduleIdCounter++;
@@ -102,6 +106,9 @@ public class whiteoutScript : MonoBehaviour
 		//Gets the number of stages for the module
 		count = bomb.GetSolvableModuleNames().Where(x => !ignoredModules.Contains(x)).ToList().Count;
 
+		colorblindModeEnabled = colorblindmode.ColorblindModeActive;
+		ApplyColorblindToggle();
+		
 		StageProgression();
 	}
 
@@ -139,6 +146,18 @@ public class whiteoutScript : MonoBehaviour
 		}
 	}
 
+	void ApplyColorblindToggle()
+	{
+		if (colorblindModeEnabled)
+		{
+			ColorblindText.SetActive(true);
+		}
+		else
+		{
+			ColorblindText.SetActive(false);
+		}
+	}
+
 	void StageProgression()
 	{
 		Stage++;
@@ -151,13 +170,16 @@ public class whiteoutScript : MonoBehaviour
 					if (i == 7)
 					{
 						StageIndicator.GetComponent<TextMesh>().color = MainTextColor[1].color;
+						ColorblindText.GetComponent<TextMesh>().color = MainTextColor[1].color;
 					}
 					else
 					{
 						StageIndicator.GetComponent<TextMesh>().color = MainTextColor[0].color;
+						ColorblindText.GetComponent<TextMesh>().color = MainTextColor[0].color;
 					}
 					StartCoroutine(ColorTransition(Colors[i].color));
 					CurrentRGB = rgbXOR(CurrentRGB,ColorsRGB[i]);
+					ColorblindText.GetComponent<TextMesh>().text = Colors[i].name;
 					Debug.LogFormat("[Whiteout #{0}] The color of the screen on stage {1} is {2}.", moduleId, Stage, Colors[i].name);
 					solving = true;
 					count--;
@@ -171,12 +193,15 @@ public class whiteoutScript : MonoBehaviour
 			if (randomColor == 7)
 			{
 				StageIndicator.GetComponent<TextMesh>().color = MainTextColor[1].color;
+				ColorblindText.GetComponent<TextMesh>().color = MainTextColor[1].color;
 			}
 			else
 			{
 				StageIndicator.GetComponent<TextMesh>().color = MainTextColor[0].color;
+				ColorblindText.GetComponent<TextMesh>().color = MainTextColor[0].color;
 			}
 			CurrentRGB = rgbXOR(CurrentRGB,ColorsRGB[randomColor]);
+			ColorblindText.GetComponent<TextMesh>().text = Colors[randomColor].name;
 
 			Debug.LogFormat("[Whiteout #{0}] The color of the screen on stage {1} is {2}.", moduleId, Stage, Colors[randomColor].name);
 			count--;
@@ -327,6 +352,12 @@ public class whiteoutScript : MonoBehaviour
 			if (cutInBlank[i].Equals("PUSH", StringComparison.InvariantCultureIgnoreCase))
 			{
 				pressIt = true;
+			}
+			else if (cutInBlank[i].Equals("COLORBLIND", StringComparison.InvariantCultureIgnoreCase))
+			{
+				colorblindModeEnabled = colorblindModeEnabled ^ true;
+				ApplyColorblindToggle();
+				yield return null;
 			}
 			else
 			{

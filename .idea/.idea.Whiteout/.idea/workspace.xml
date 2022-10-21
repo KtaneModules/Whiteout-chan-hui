@@ -2,19 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0aaa98be-dea9-4814-aaa7-76cfb76b435a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Whiteout/.idea/contentModel.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Whiteout/.idea/indexLayout.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Whiteout/.idea/indexLayout.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Whiteout/.idea/modules.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Whiteout/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Whiteout/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Whiteout/riderModule.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Editor/Resources/ModConfig.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Editor/Resources/ModConfig.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Editor/JetBrains/JetBrains.Rider.Unity.Editor.Plugin.Repacked.dll" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Plugins/Editor/JetBrains/JetBrains.Rider.Unity.Editor.Plugin.Repacked.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/SFX/action.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/SFX/action.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/SFX/actionL.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/SFX/actionL.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/SFX/newSt.wav" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/SFX/newSt.wav.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/whiteout.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/whiteout.prefab" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/whiteout.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/whiteout.unity" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/whiteoutScript.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/whiteoutScript.cs" afterDir="false" />
@@ -90,6 +79,9 @@
       <workItem from="1626228941601" duration="2636000" />
       <workItem from="1626246637668" duration="1445000" />
       <workItem from="1626248346273" duration="484000" />
+      <workItem from="1666343331687" duration="880000" />
+      <workItem from="1666344863283" duration="617000" />
+      <workItem from="1666345513114" duration="568000" />
     </task>
     <servers />
   </component>
